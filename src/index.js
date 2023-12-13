@@ -1,5 +1,6 @@
 import express from "express";
 const cors = require("cors");
+import { pratos } from './receitas';
 
 //Geração de id's
 import { v4 as uuidv4 } from "uuid";
@@ -7,27 +8,6 @@ import { v4 as uuidv4 } from "uuid";
 const app = express();
 app.use(express.json());
 app.use(cors());
-
-const pratos = [
-  {
-    id: "3d886798-b947-47f1-9776-104c116227e5",
-    nome: "Frango Grelhado",
-    descricao: "Peito de frango grelhado com temperos frescos",
-    preco: 15.99,
-  },
-  {
-    id: "3d886798-b947-47f1-9776-104c116227e6",
-    nome: "Massa Carbonara",
-    descricao: "Massa italiana com molho carbonara cremoso",
-    preco: 18.5,
-  },
-  {
-    id: "3d886798-b947-47f1-9776-104c116227e8",
-    nome: "Sushi Misto",
-    descricao: "Seleção de sushis variados, incluindo sashimi e rolos",
-    preco: 22.75,
-  },
-];
 
 const usuarios = [
   {
@@ -71,7 +51,7 @@ app.post("/usuarios/login", (request, response) => {
 
   if (!pegaUsuario) return response.status(401).json("Credenciais inválidas");
 
-  return response.status(201).json({ usuarioId: pegaUsuario.id });
+  return response.status(200).json({ usuarioId: pegaUsuario.id });
 });
 
 //BUSCA USUARIOS
@@ -110,16 +90,20 @@ app.post("/usuarios", (request, response) => {
 //BUSCA PRATOS
 app.get("/pratos", (request, response) => {
   if (request.query.nome) {
-    const filtroPrato = pratos.find(
-      (prato) =>
-        prato.nome.toLocaleLowerCase() == request.query.nome.toLocaleLowerCase()
-    );
+    const filtroPratos = pratos.filter((prato) => {
+      if (prato.nome.toLocaleLowerCase().includes(request.query.nome.toLocaleLowerCase())) {
+        return true
+      }
+      if (prato.descricao.toLocaleLowerCase().includes(request.query.nome.toLocaleLowerCase())) {
+        return true
+      }
+    });
 
-    if (!filtroPrato) {
-      return response.status(400).json("Não existe um prato com esse nome!");
+    if (!filtroPratos) {
+      return response.status(404).json("Não existe um prato com esse nome!");
     }
 
-    return response.json(filtroPrato);
+    return response.json(filtroPratos);
   }
 
   return response.json(pratos);
