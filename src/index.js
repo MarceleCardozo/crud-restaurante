@@ -89,6 +89,14 @@ app.post("/usuarios", (request, response) => {
 
 //BUSCA PRATOS
 app.get("/pratos", (request, response) => {
+  let pratosResposta;
+  let pagina = 1
+  const quantiaPratosPorPagina = 5;
+
+  if (request.query.pagina) {
+    pagina = request.query.pagina
+  }
+
   if (request.query.nome) {
     const filtroPratos = pratos.filter((prato) => {
       if (prato.nome.toLocaleLowerCase().includes(request.query.nome.toLocaleLowerCase())) {
@@ -103,10 +111,18 @@ app.get("/pratos", (request, response) => {
       return response.status(404).json("Não existe um prato com esse nome!");
     }
 
-    return response.json(filtroPratos);
+    pratosResposta = filtroPratos;
+  } else {
+    pratosResposta = pratos;
   }
 
-  return response.json(pratos);
+  const quantiaPaginas = Math.ceil(pratosResposta.length / quantiaPratosPorPagina);
+  const pratosComPaginacao = pratosResposta.slice(quantiaPratosPorPagina * (pagina - 1), quantiaPratosPorPagina * pagina)
+
+  return response.json({
+    pratos: pratosComPaginacao,
+    quantiaPaginas
+  });
 });
 
 //CRIA PRATOS
