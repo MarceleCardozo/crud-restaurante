@@ -1,6 +1,6 @@
 import express from "express";
 const cors = require("cors");
-import { pratos } from './receitas';
+import { pratos } from "./receitas";
 
 //Geração de id's
 import { v4 as uuidv4 } from "uuid";
@@ -19,7 +19,6 @@ const usuarios = [
 ];
 
 //AUTENTICAÇÃO
-
 const autenticaUsuario = function (request, response, next) {
   let id = request.headers.authorization;
 
@@ -56,7 +55,7 @@ app.post("/usuarios/login", (request, response) => {
 
 //BUSCA USUARIOS
 app.get("/usuarios", (request, response) => {
-  return response.json(usuarios);
+  return response.status(200).json(usuarios);
 });
 
 //CRIA USUARIO
@@ -84,26 +83,34 @@ app.post("/usuarios", (request, response) => {
 
   usuarios.push(novoUsuario);
 
-  return response.json(usuarios);
+  return response.status(200).json(usuarios);
 });
 
 //BUSCA PRATOS
 app.get("/pratos", (request, response) => {
   let pratosResposta;
-  let pagina = 1
+  let pagina = 1;
   const quantiaPratosPorPagina = 5;
 
   if (request.query.pagina) {
-    pagina = request.query.pagina
+    pagina = request.query.pagina;
   }
 
   if (request.query.nome) {
     const filtroPratos = pratos.filter((prato) => {
-      if (prato.nome.toLocaleLowerCase().includes(request.query.nome.toLocaleLowerCase())) {
-        return true
+      if (
+        prato.nome
+          .toLocaleLowerCase()
+          .includes(request.query.nome.toLocaleLowerCase())
+      ) {
+        return true;
       }
-      if (prato.descricao.toLocaleLowerCase().includes(request.query.nome.toLocaleLowerCase())) {
-        return true
+      if (
+        prato.descricao
+          .toLocaleLowerCase()
+          .includes(request.query.nome.toLocaleLowerCase())
+      ) {
+        return true;
       }
     });
 
@@ -116,12 +123,25 @@ app.get("/pratos", (request, response) => {
     pratosResposta = pratos;
   }
 
-  const quantiaPaginas = Math.ceil(pratosResposta.length / quantiaPratosPorPagina);
-  const pratosComPaginacao = pratosResposta.slice(quantiaPratosPorPagina * (pagina - 1), quantiaPratosPorPagina * pagina)
+  const quantiaPaginas = Math.ceil(
+    pratosResposta.length / quantiaPratosPorPagina
+  );
 
-  return response.json({
+  const pratosComPaginacao = pratosResposta.slice(
+    //cria outro array
+    quantiaPratosPorPagina * (pagina - 1),
+    // Calcula o índice do primeiro prato a ser incluído na página atual.
+    // Se a página for a primeira (pagina === 1), então o índice inicial é 0.
+    // Se a página for maior que 1, ele calcula o índice multiplicando o
+    // número de pratos por página pelo número da página anterior (pagina - 1).
+    quantiaPratosPorPagina * pagina
+    // Calcula o índice do último prato a ser incluído na página atual
+    // multiplicando o número de pratos por página pelo número da página atual.
+  );
+
+  return response.status(200).json({
     pratos: pratosComPaginacao,
-    quantiaPaginas
+    quantiaPaginas,
   });
 });
 
@@ -146,7 +166,7 @@ app.post("/pratos", autenticaUsuario, (request, response) => {
 
   pratos.push(novoPrato);
 
-  return response.json(pratos);
+  return response.status(200).json(pratos);
 });
 
 //ATUALIZA PRATOS
@@ -175,7 +195,7 @@ app.put("/pratos/:id", autenticaUsuario, (request, response) => {
   pratoDaLista.descricao = body.descricao;
   pratoDaLista.preco = body.preco;
 
-  return response.json(pratoDaLista);
+  return response.status(200).json(pratoDaLista);
 });
 
 //DELETA PRATOS
@@ -188,10 +208,17 @@ app.delete("/pratos/:id", autenticaUsuario, function (request, response) {
   }
 
   pratos.splice(indicePrato, 1);
+
   return response.status(201).json({
     success: "Prato apagado com sucesso",
     data: pratos,
   });
 });
+
+//crud
+//create - post
+//read - get
+//update - put
+//delete - delete
 
 app.listen(8080, () => console.log("Servidor iniciado"));
